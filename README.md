@@ -395,3 +395,230 @@ val numbers = List(1, 2, 2, 3, 4, 4, 5)
 val distinctNumbers = numbers.distinct
 println(distinctNumbers) // List(1, 2, 3, 4, 5)
 ```
+
+## Fold Operations
+- Folding is a supeior order function that allows to merge all elements of a collection in a single one value, usign a binary funtion and an initial value. Similiar to a for operation
+
+### Params:
+- `Seed` with a initial value
+- `Funtion` aplied for the seed and every element of the colection
+
+### Types:
+- `foldLeft`: Process every elemento from left to right
+- `foldRight`: Process from right to left
+- `fold`: No order, can process from any part.
+
+```scala
+val mov = List(100.0, -50.0, 200.0, -20.0)
+
+//Initial value: 0.0
+val finalLeft = mov.foldLeft(0.0)((b,a) => b + a)
+// (((0.0+100) - 50) + 200) - 20) = 230
+
+val finalRight = mov.foldRight(0)(_ - _)
+// 100 - (-50 - (200 - (-20 - 0))) = -270
+```
+
+### Jerarquia de Tipos en Scala  
+![alt text](img/jerarquiatipos.png)
+
+- `Any` es el super tipo de Scala. Todas las clases heradan de Any, es la raiz de toda la jerarquia. Every varibale is a instance of Any
+
+- `AnyVal` and `AnyRef` are direct subclasses
+
+-`AnyVal` make a reference to the primitive values: Double, Int, Char, etc...
+
+- `AnyRef` are user defined objects and java clases
+
+- `Nothing` is a subtype of all, there are no instances of nothing and it is used for funtions that never return nothing
+
+-  `Unit` is a object used in functions that do not return, similar to `java` void
+```scala
+def registrarLog(mensaje: String): Unit = {
+  println("hallo") //Return Unit
+}
+```
+- Due to `Any` scala allow list of multiple data types
+```scala
+val list: List[Any] = {
+  "Transferencia",
+  150.0,
+  true
+}
+```
+
+### Tuples:
+- A `Tuple` groups a fixed number of elements where each one can have its own type
+- Are inmutables
+- Usefull to retunr more than a single value
+```scala
+val saldoCliente = ("U001", 1500.80)
+//Access
+println(saldoCliente._1) //U001
+println(saldoCliente._2) //1500.80
+```
+```scala
+def validarTransaccion(monto: Double): (Boolean, String) = {
+  if (monto > 0) (true, "Monto valido")
+  esle (false, "Monto invalido")
+}
+val (esValido,mensaje) = validarTransaccion(-50.0)
+print(esValido) //False
+print(mensaje) //Monto invalido
+```
+
+### Zip
+- Takes two colecctions and merge them into a sigle tuple.
+- If the colecttions have diferent lengt, the result trucante to the smallest
+```scala
+val clientes = List("Ana", "Pedro", "Luis")
+val deudas = List(150.0, 300.0, 50.0)
+
+val reportes = clientes.zip(deudas) // List((Ana,150.0), (Pedro,300.0), (Luis,50.0))
+```
+### ZipWithIdex
+- Pairs each element with its position
+```scala
+val transacciones = List("A", "B", "C")
+val conindice = transacciones.zipWithIndex // List((A,0), (B,1), (C,2)
+```
+### ZipAll
+```scala
+val cuentas = List("C1", "C2", "C3")
+val saldos = List(1000, 2000)
+
+val result = cuentas.zipAll(saldos, "Desconocido", 0)
+println(result)// List((C1,1000), (C2,2000), (C3,0))
+```
+## Unzip
+- Take a tuples colection and divides it in diferent colecctions
+```scala
+val datos = List((C1,1000), (C2,2000))
+val (ids, montos) = datos.unzip
+println(ids) //List(C1, C2)
+println(montos)//List(100, 200)
+```
+## Sliding
+- Divides a colecction in small groups of an especified (`size`), and moves a determined numbers of elements(`step`) en eacgh iteration.
+- Returns not a list but a `Iterator`
+- `Size`: How many elements are in every window
+- `Step`: How many elements jump for the next window 
+```scala
+val montos = List(10,20,30,40,50)
+
+val windows = montos.sliding(3,1)
+println(windows) //<iterator>
+
+val windows2 = montos.sliding(3,1).toList
+println(windows2) // List(List(10,20,30), List(20,30,40), List(30,40,50))
+```
+
+## Slice
+- slice(from, until) extrae una seccion de la coleccion desde un indice hasta otro
+```scala
+val transacciones = (1 to 100).toList
+val paginar = transacciones.slice(10,29)
+println(paginar) //List(11, 12, 13, 14, 15, 16, 17, 18, 19, 20)
+```
+
+## isEmpty:
+Devuelve true si la coleccion no contiene elementos
+
+## nonEmpty:
+Es el opuesto, true si la coleccion tiene almenos un elemento
+
+-Anmas son las eficientes y semanticas que usar size
+
+## Operadores sobre colecciones:
+  -`:+` agrega un elemento al final
+  -`+:` agrega un elemento al inicio
+  -`::` solo en las listas, agrega un elemento al inicio
+  -`++` contantena dos colecciones
+  -`-` elimina un elemento en especifico
+  -`--` elimina todos los elementos de una coleccion presentes en otra
+  -`contains/apply` verifica existencia
+  -`%/|` interseccion y union
+![alt text](img/operacionesColecciones.png)
+![alt text](img/restarColecciones.png)
+
+## Map:
+Coleccion de pares formados por `(key)` y `(value)`
+- Inmutables
+- Las llaves son unicas
+- Los valores se pueden repetir
+```scala
+val saldos = Map("U1" -> 100, "U2" -> 500)
+val s1 = saldos("U1") //100
+val s2 = saldos("U3") //Java Exception
+val s1 = saldos.get("U3") //None 
+val s1 = saldos.getOrElse("U3", 0) //0
+```
+## Monadas:
+encapsula valores y permite encadenar operaciones de forma segura y composable.
+```scala
+val numeros = List(1, 2, 3)
+
+// flatMap aplana los resultados
+val resultado = numeros.flatMap(n => List(n, n * 10))
+println(resultado)  // List(1, 10, 2, 20, 3, 30)
+
+// Con for-comprehension
+val combinaciones = for {
+  x <- List(1, 2)
+  y <- List(10, 20)
+} yield x + y
+
+println(combinaciones)  // List(11, 21, 12, 22)
+```
+
+### For Comprehension:
+- Generadores (<-): Introducen nuevas variables y recorren
+colecciones
+- Filtros (if): Permiten añadir condiciones para incluir elementos (ej.
+if x > 0).
+- Definiciones (=): Asignan valores intermedios, útil para evitar
+cálculos repetidos
+![alt text](img/for.png)
+![alt text](img/for2.png)
+
+## Either:
+Representa un valor que puede ser de dos tipos diferentes. Es especialmente útil para manejar errores de forma explícita.
+
+Either[A, B]
+- Left[A]: Representa el error
+- Right[B]: Representa el éxito
+
+```Scala
+def dividir(a: Int, b: Int): Either[String, Double] = {
+  if (b == 0) 
+    Left("Error: División por cero")
+  else 
+    Right(a.toDouble / b)
+}
+
+val resultado1 = dividir(10, 2)
+println(resultado1)  // Right(5.0)
+
+val resultado2 = dividir(10, 0)
+println(resultado2)  // Left(Error: División por cero)
+```
+```Scala
+val resultado = dividir(10, 0)
+
+resultado match {
+  case Left(error) => println(s"Falló: $error")
+  case Right(value) => println(s"Resultado: $value")
+}
+// Output: Falló: Error: División por cero
+```
+
+## Nil:
+- Nil representa una lista vacía de tipo List[Nothing].
+- se puede aplicar las diferentes funciones que List provee.
+- Es el "Caso Base": En la programación funcional y recursiva,
+Nil es el punto donde todas las listas terminan.
+- Tipo Seguro: A diferencia de null, Nil es una instancia
+legítima de List. 
+- Puedes llamar a métodos como .size, .map o
+.filter sobre Nil sin que el programa explote.
+![alt text](img/nil.png)
